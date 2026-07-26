@@ -20,11 +20,16 @@ form.addEventListener("submit", async (evt) => {
   statusEl.classList.remove("error");
 
   const apiBase = document.getElementById("apiBase").value.replace(/\/$/, "");
+  const existingGemstones = Array.from(
+    document.getElementById("existingGemstones").selectedOptions
+  ).map((opt) => opt.value);
+
   const payload = {
     dateOfBirth: document.getElementById("dateOfBirth").value,
     timeOfBirth: document.getElementById("timeOfBirth").value,
     timeConfidence: document.getElementById("timeConfidence").value,
     placeOfBirth: document.getElementById("placeOfBirth").value,
+    existingGemstones,
     consent: {
       givenAt: new Date().toISOString(),
       purposes: ["chart_calculation"],
@@ -70,6 +75,7 @@ function renderResult(data) {
   renderDasha(data.dashaTimeline);
   renderNumerology(data.numerology);
   renderTransits(data.transitSnapshot);
+  renderGemstoneShortlist(data.gemstoneShortlist);
 
   document.getElementById("audit-count").textContent = data.auditTrail.length;
   document.getElementById("audit-json").textContent = JSON.stringify(data.auditTrail, null, 2);
@@ -132,6 +138,42 @@ function renderTransits(snapshot) {
     </div>
     <p style="margin-top:0.75rem; font-size:0.85rem;"><strong>Sade Sati:</strong> ${sadeSatiText}</p>
   `;
+}
+
+function renderGemstoneShortlist(shortlist) {
+  const cardsEl = document.getElementById("candidate-cards");
+  const conflictsEl = document.getElementById("conflict-list");
+
+  if (shortlist.surviving.length === 0) {
+    cardsEl.innerHTML = '<p class="no-candidates">No traditional candidates survived the conflict check for this chart.</p>';
+  } else {
+    cardsEl.innerHTML = shortlist.surviving
+      .map(
+        (c) => `
+        <div class="candidate-card risk-${c.riskClassification}">
+          <p class="gem-name">${c.gemstone}</p>
+          <p class="gem-planet">for ${c.forPlanet}</p>
+          <p class="gem-rule">${c.ruleDescription}</p>
+          <span class="risk-badge">${c.riskClassification.replace(/_/g, " ")}</span>
+        </div>
+      `
+      )
+      .join("");
+  }
+
+  if (shortlist.conflicts.length === 0) {
+    conflictsEl.innerHTML = "";
+  } else {
+    conflictsEl.innerHTML = shortlist.conflicts
+      .map(
+        (c) => `
+        <div class="conflict-item severity-${c.severity}">
+          <span class="conflict-severity">${c.severity}</span>${c.reason}
+        </div>
+      `
+      )
+      .join("");
+  }
 }
 
 function renderWheel(chart) {

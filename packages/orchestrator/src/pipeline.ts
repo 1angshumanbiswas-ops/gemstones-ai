@@ -7,6 +7,8 @@ import type {
   NumerologyProfile,
   DashaTimeline,
   TransitSnapshot,
+  GemstoneShortlistResult,
+  PlanetaryFunctionalNature,
 } from "@gemstones-ai/shared";
 import { buildNatalChart } from "@gemstones-ai/ephemeris-mcp";
 import {
@@ -16,15 +18,18 @@ import {
 } from "@gemstones-ai/geo-timezone-mcp";
 import { buildNumerologyProfile } from "@gemstones-ai/numerology";
 import { buildDashaTimeline, buildTransitSnapshot } from "@gemstones-ai/dasha";
+import { buildGemstoneShortlist } from "@gemstones-ai/rule-graph";
 import type { AuditSink } from "./audit.js";
 
-export interface Phase1Result {
+export interface PipelineResult {
   requestId: string;
   resolvedContext: ResolvedBirthContext;
   natalChart: NatalChart;
   numerology: NumerologyProfile;
   dashaTimeline: DashaTimeline;
   transitSnapshot: TransitSnapshot;
+  functionalNatures: PlanetaryFunctionalNature[];
+  gemstoneShortlist: GemstoneShortlistResult;
   confidence: ConfidenceIndicators;
   auditTrail: ReturnType<AuditSink["getEntries"]>;
 }
@@ -48,21 +53,23 @@ function birthDataConfidenceFor(input: BirthInput): number {
 }
 
 /**
- * Runs the full Phase 1 deterministic pipeline for one birth input:
- * place -> coordinates -> historical UTC instant -> natal chart ->
- * numerology -> dasha timeline -> today's transit snapshot. Every step
- * is written to `auditSink` with enough input/output detail to
- * reproduce the calculation later (Section 12's audit-trail
- * requirement). Nothing here calls an LLM — this is the deterministic
- * layer the architecture requires the rule engine and explanation
- * layer to build on top of, never around.
+ * Runs the full deterministic + rule-graph pipeline for one birth
+ * input: place -> coordinates -> historical UTC instant -> natal
+ * chart -> numerology -> dasha timeline -> today's transit snapshot
+ * -> traditional gemstone candidate shortlist -> conflict check.
+ * Every step is written to `auditSink` with enough input/output detail
+ * to reproduce the calculation later (Section 12's audit-trail
+ * requirement). Nothing here calls an LLM — deterministic chart math
+ * and expert-approved rule-graph logic only; the explanation layer
+ * (Phase 4) is the only place an LLM is allowed to enter the pipeline,
+ * and even then only to explain this output, never to generate it.
  */
-export async function runPhase1Pipeline(
+export async function runPipeline(
   input: BirthInput,
   geocoder: GeocodingProvider,
   auditSink: AuditSink,
   referenceDate: Date = new Date()
-): Promise<Phase1Result> {
+): Promise<PipelineResult> {
   const requestId = uuid();
   const now = () => new Date().toISOString();
 
@@ -165,10 +172,44 @@ export async function runPhase1Pipeline(
     outputSummary: { ...transitSnapshot },
   });
 
+  // Step 7: Rule-Graph — shortlist candidate gemstones from the
+  // ascendant lord and current dasha lord (Traditional Rule Agent),
+  // then run the Gemstone Conflict Agent against them. Traditional
+  // evidence only — still no gemology/certification/consumer-
+  // protection data, and still no LLM call anywhere in this step.
+  const gemstoneShortlist = buildGemstoneShortlist({
+    ascendantSignIndex: natalChart.houses.ascendantSignIndex,
+    currentDashaPeriod: dashaTimeline.currentPeriod,
+    existingGemstones: input.existingGemstones,
+  });
+  auditSink.record({
+    requestId,
+    timestamp: now(),
+    step: "rule_evaluation",
+    mcpServer: "rule-graph-mcp",
+    inputSummary: { ascendantSignIndex: natalChart.houses.ascendantSignIndex },
+    outputSummary: { candidateCount: gemstoneShortlist.candidates.length },
+  });
+  auditSink.record({
+    requestId,
+    timestamp: now(),
+    step: "conflict_check",
+    mcpServer: "rule-graph-mcp",
+    inputSummary: { existingGemstones: input.existingGemstones ?? [] },
+    outputSummary: {
+      conflictCount: gemstoneShortlist.conflicts.length,
+      survivingCount: gemstoneShortlist.surviving.length,
+    },
+  });
+
   const confidence: ConfidenceIndicators = {
     birthDataConfidence: birthDataConfidenceFor(input),
     astronomicalCalculationConfidence:
       natalChart.calculationConfidence * (1 - (1 - coordinates.matchConfidence) * 0.3),
+    // Not yet a numeric consensus score — Phase 2 only has one rule
+    // source, so "consensus" isn't meaningful until Phase 3 adds more
+    // traditions to compare against. Left undefined rather than
+    // faked with a placeholder number.
   };
 
   return {
@@ -178,6 +219,8 @@ export async function runPhase1Pipeline(
     numerology,
     dashaTimeline,
     transitSnapshot,
+    functionalNatures: gemstoneShortlist.functionalNatures,
+    gemstoneShortlist,
     confidence,
     auditTrail: auditSink.getEntries(),
   };

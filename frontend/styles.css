@@ -274,6 +274,89 @@ td.mono, th.mono { font-family: var(--font-mono); }
 .num-card .label { font-size: 0.7rem; color: var(--ink-dim); text-transform: uppercase; }
 .num-card .value { font-family: var(--font-mono); font-size: 1.4rem; color: var(--gold); }
 
+.shortlist-section {
+  margin-bottom: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--line);
+}
+.shortlist-note {
+  font-size: 0.82rem;
+  color: var(--ink-dim);
+  max-width: 70ch;
+  margin: 0 0 1rem;
+}
+.candidate-cards {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.9rem;
+  margin-bottom: 1rem;
+}
+.candidate-card {
+  flex: 1;
+  min-width: 220px;
+  background: var(--gold-soft);
+  border: 1px solid rgba(201,162,39,0.35);
+  border-radius: 12px;
+  padding: 0.9rem 1.1rem;
+}
+.candidate-card.risk-expert_review_required {
+  background: rgba(224,133,133,0.10);
+  border-color: rgba(224,133,133,0.4);
+}
+.candidate-card .gem-name {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 1.2rem;
+  color: var(--gold);
+  margin: 0 0 0.3rem;
+}
+.candidate-card.risk-expert_review_required .gem-name { color: #e08585; }
+.candidate-card .gem-planet {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--ink-dim);
+  margin: 0 0 0.5rem;
+}
+.candidate-card .gem-rule {
+  font-size: 0.8rem;
+  line-height: 1.4;
+  margin: 0;
+}
+.candidate-card .risk-badge {
+  display: inline-block;
+  margin-top: 0.6rem;
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 0.15rem 0.5rem;
+  border-radius: 4px;
+  background: rgba(255,255,255,0.06);
+}
+.conflict-list { display: flex; flex-direction: column; gap: 0.6rem; }
+.conflict-item {
+  font-size: 0.82rem;
+  line-height: 1.5;
+  padding: 0.6rem 0.9rem;
+  border-radius: 8px;
+  border-left: 3px solid var(--cyan);
+  background: rgba(255,255,255,0.02);
+}
+.conflict-item.severity-excluded { border-left-color: #e08585; }
+.conflict-item .conflict-severity {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  color: var(--cyan);
+  margin-right: 0.5rem;
+}
+.conflict-item.severity-excluded .conflict-severity { color: #e08585; }
+.no-candidates {
+  font-size: 0.85rem;
+  color: var(--ink-dim);
+  font-style: italic;
+}
+
 .audit-trail summary {
   cursor: pointer;
   color: var(--ink-dim);

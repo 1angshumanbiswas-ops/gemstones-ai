@@ -1,3 +1,5 @@
+import type { GemstoneName } from "./gemstone-rules.js";
+
 /**
  * What the Consent & Intake Agent collects from the user (row 1 of the
  * top-level flow: "1. Input"). This is the only place free-text place
@@ -18,6 +20,9 @@ export interface BirthInput {
   timeConfidence: "exact" | "approximate" | "unknown";
   /** Free-text place as given by the user, e.g. "Kolkata, West Bengal, India" */
   placeOfBirth: string;
+  /** Gemstones the user already wears, if any — feeds the Gemstone
+   *  Conflict Agent's existing-gemstone check (Section 6/7). */
+  existingGemstones?: GemstoneName[];
   /** Explicit consent record — required before any processing per DPDP notes */
   consent: {
     givenAt: string; // ISO 8601 timestamp

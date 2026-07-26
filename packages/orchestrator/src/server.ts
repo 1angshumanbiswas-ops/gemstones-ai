@@ -3,7 +3,7 @@ import cors from "cors";
 import type { BirthInput } from "@gemstones-ai/shared";
 import { NominatimGeocodingProvider, type GeocodingProvider } from "@gemstones-ai/geo-timezone-mcp";
 import { InMemoryAuditSink } from "./audit.js";
-import { runPhase1Pipeline } from "./pipeline.js";
+import { runPipeline } from "./pipeline.js";
 
 export function createApp(geocoder: GeocodingProvider) {
   const app = express();
@@ -12,7 +12,7 @@ export function createApp(geocoder: GeocodingProvider) {
 
   // Cloud Run liveness/readiness probe.
   app.get("/healthz", (_req: Request, res: Response) => {
-    res.json({ status: "ok", phase: 1 });
+    res.json({ status: "ok", phase: 2 });
   });
 
   app.post("/api/chart", async (req: Request, res: Response) => {
@@ -30,6 +30,7 @@ export function createApp(geocoder: GeocodingProvider) {
       timeOfBirth: body.timeOfBirth,
       timeConfidence: body.timeConfidence ?? "exact",
       placeOfBirth: body.placeOfBirth,
+      existingGemstones: body.existingGemstones,
       consent: body.consent ?? {
         givenAt: new Date().toISOString(),
         purposes: ["chart_calculation"],
@@ -38,7 +39,7 @@ export function createApp(geocoder: GeocodingProvider) {
 
     try {
       const auditSink = new InMemoryAuditSink();
-      const result = await runPhase1Pipeline(input, geocoder, auditSink);
+      const result = await runPipeline(input, geocoder, auditSink);
       res.json(result);
     } catch (err) {
       const message = err instanceof Error ? err.message : "Unknown error";

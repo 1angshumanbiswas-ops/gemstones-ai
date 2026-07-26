@@ -1,14 +1,14 @@
 {
   "name": "gemstones-ai",
-  "version": "0.1.0-phase1",
+  "version": "0.2.0-phase2",
   "private": true,
-  "description": "Gemstones_AI - MCP orchestrator architecture, Phase 1: deterministic birth-intelligence core",
+  "description": "Gemstones_AI - MCP orchestrator architecture, Phase 2: deterministic core + traditional rule-graph and gemstone conflict engine",
   "workspaces": [
     "packages/*"
   ],
   "scripts": {
-    "build": "npm run build --workspace=packages/shared && npm run build --workspace=packages/ephemeris-mcp --workspace=packages/geo-timezone-mcp --workspace=packages/numerology --workspace=packages/dasha && npm run build --workspace=packages/orchestrator",
-    "test": "npm run test --workspace=packages/ephemeris-mcp --workspace=packages/geo-timezone-mcp --workspace=packages/numerology --workspace=packages/dasha --workspace=packages/orchestrator",
+    "build": "npm run build --workspace=packages/shared && npm run build --workspace=packages/ephemeris-mcp --workspace=packages/geo-timezone-mcp --workspace=packages/numerology --workspace=packages/dasha --workspace=packages/rule-graph && npm run build --workspace=packages/orchestrator",
+    "test": "npm run test --workspace=packages/ephemeris-mcp --workspace=packages/geo-timezone-mcp --workspace=packages/numerology --workspace=packages/dasha --workspace=packages/rule-graph --workspace=packages/orchestrator",
     "dev:orchestrator": "npm run dev --workspace=packages/orchestrator"
   },
   "engines": {

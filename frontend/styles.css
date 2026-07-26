@@ -274,6 +274,29 @@ td.mono, th.mono { font-family: var(--font-mono); }
 .num-card .label { font-size: 0.7rem; color: var(--ink-dim); text-transform: uppercase; }
 .num-card .value { font-family: var(--font-mono); font-size: 1.4rem; color: var(--gold); }
 
+.download-row {
+  margin-top: 1.5rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+#download-docx {
+  background: transparent;
+  color: var(--cyan);
+  border: 1px solid rgba(87,199,212,0.4);
+  border-radius: 8px;
+  padding: 0.65rem 1.1rem;
+  font-family: var(--font-body);
+  font-weight: 500;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+#download-docx:hover { background: var(--cyan-soft); }
+#download-docx:disabled { opacity: 0.5; cursor: wait; }
+
 .shortlist-section {
   margin-bottom: 2rem;
   padding-top: 1.5rem;

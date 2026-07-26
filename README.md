@@ -21,10 +21,13 @@ candidate gemstones from two near-universal Parashari principles
 a Gemstone Conflict Agent (functional-malefic exclusion, natural-enmity
 caution via the classical 7-graha friendship table, Rahu/Ketu
 simultaneous-wear caution, existing-gemstone conflicts, mandatory
-human-review flags for high-impact stones). Still no gemology data, no
-certificate verification, no consumer-protection filtering, and still no
-LLM calls anywhere — Phase 2 output is traditional-rule evidence only,
-explicitly not a final recommendation.
+human-review flags for high-impact stones). Also adds a per-user
+downloadable Word (.docx) report (`POST /api/report/docx`), formatted
+from the already-computed result rather than recomputed, so the
+download always matches exactly what was shown on screen. Still no
+gemology data, no certificate verification, no consumer-protection
+filtering, and still no LLM calls anywhere — Phase 2 output is
+traditional-rule evidence only, explicitly not a final recommendation.
 
 ## Why phase it this way
 

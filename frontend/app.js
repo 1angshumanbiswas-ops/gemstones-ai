@@ -11,6 +11,7 @@ const PLANET_GLYPHS = {
 const form = document.getElementById("birth-form");
 const statusEl = document.getElementById("status");
 const resultsEl = document.getElementById("results");
+let lastResult = null;
 
 form.addEventListener("submit", async (evt) => {
   evt.preventDefault();
@@ -58,6 +59,7 @@ form.addEventListener("submit", async (evt) => {
 
 function renderResult(data) {
   resultsEl.hidden = false;
+  lastResult = data;
 
   document.getElementById("conf-astro").textContent =
     Math.round(data.confidence.astronomicalCalculationConfidence * 100) + "%";
@@ -225,3 +227,42 @@ function renderWheel(chart) {
 
   svg.innerHTML = parts.join("");
 }
+
+const downloadBtn = document.getElementById("download-docx");
+const downloadStatusEl = document.getElementById("download-status");
+
+downloadBtn.addEventListener("click", async () => {
+  if (!lastResult) return;
+  downloadBtn.disabled = true;
+  downloadStatusEl.textContent = "Generating…";
+  downloadStatusEl.classList.remove("error");
+
+  const apiBase = document.getElementById("apiBase").value.replace(/\/$/, "");
+
+  try {
+    const res = await fetch(`${apiBase}/api/report/docx`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(lastResult),
+    });
+    if (!res.ok) {
+      const errBody = await res.json().catch(() => ({}));
+      throw new Error(errBody.error || `Request failed (${res.status})`);
+    }
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `gemstones-ai-report-${lastResult.requestId}.docx`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+    downloadStatusEl.textContent = "Downloaded.";
+  } catch (err) {
+    downloadStatusEl.textContent = err.message;
+    downloadStatusEl.classList.add("error");
+  } finally {
+    downloadBtn.disabled = false;
+  }
+});

@@ -1,0 +1,31 @@
+{
+  "name": "@gemstones-ai/orchestrator",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "start": "node dist/index.js",
+    "dev": "node --watch dist/index.js",
+    "test": "node --test dist/test/*.test.js"
+  },
+  "dependencies": {
+    "@gemstones-ai/shared": "*",
+    "@gemstones-ai/ephemeris-mcp": "*",
+    "@gemstones-ai/geo-timezone-mcp": "*",
+    "@gemstones-ai/numerology": "*",
+    "@gemstones-ai/dasha": "*",
+    "express": "^4.21.1",
+    "cors": "^2.8.5",
+    "zod": "^3.23.8",
+    "uuid": "^11.0.3"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.3",
+    "@types/node": "^22.9.0",
+    "@types/express": "^5.0.0",
+    "@types/cors": "^2.8.17",
+    "@types/uuid": "^10.0.0"
+  }
+}

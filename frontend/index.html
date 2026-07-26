@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Gemstones_AI — Birth Intelligence (Phase 1)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Space+Grotesk:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="skyfield" aria-hidden="true"></div>
+
+  <header class="site-header">
+    <div class="brand">
+      <span class="brand-mark">✦</span>
+      <div class="brand-text">
+        <h1>Gemstones_AI</h1>
+        <p>Birth Intelligence — Phase 1 deterministic core</p>
+      </div>
+    </div>
+    <p class="phase-note">
+      This screen shows only calculation output: chart, dasha, numerology.
+      No gemstone is recommended here — that requires the rule engine
+      and human review layers of later phases.
+    </p>
+  </header>
+
+  <main class="layout">
+    <section class="panel intake" aria-labelledby="intake-heading">
+      <h2 id="intake-heading"><span class="eyebrow">01</span> Birth details</h2>
+      <form id="birth-form">
+        <label>
+          Date of birth
+          <input type="date" id="dateOfBirth" required />
+        </label>
+        <label>
+          Time of birth
+          <input type="time" id="timeOfBirth" required />
+        </label>
+        <label>
+          How certain is this time?
+          <select id="timeConfidence">
+            <option value="exact">Exact (birth certificate / hospital record)</option>
+            <option value="approximate">Approximate (family recollection)</option>
+            <option value="unknown">Unknown / estimated</option>
+          </select>
+        </label>
+        <label>
+          Place of birth
+          <input type="text" id="placeOfBirth" placeholder="e.g. Kolkata, West Bengal, India" required />
+        </label>
+        <label class="consent">
+          <input type="checkbox" id="consent" required />
+          <span>I consent to this data being used to calculate my chart, dasha, and numerology profile.</span>
+        </label>
+
+        <label class="api-config">
+          Orchestrator endpoint
+          <input type="text" id="apiBase" value="http://localhost:8080" />
+        </label>
+
+        <button type="submit">Calculate chart</button>
+      </form>
+      <p id="status" class="status" role="status"></p>
+    </section>
+
+    <section class="panel results" aria-labelledby="results-heading" id="results" hidden>
+      <h2 id="results-heading"><span class="eyebrow">02</span> Deterministic report</h2>
+
+      <div class="confidence-row">
+        <div class="confidence-chip layer-astro">
+          <span class="chip-label">Astronomical calculation</span>
+          <span class="chip-value" id="conf-astro">—</span>
+        </div>
+        <div class="confidence-chip layer-input">
+          <span class="chip-label">Birth-data confidence</span>
+          <span class="chip-value" id="conf-birth">—</span>
+        </div>
+      </div>
+
+      <div class="wheel-wrap">
+        <svg id="chart-wheel" viewBox="0 0 480 480" role="img" aria-label="Sidereal chart wheel"></svg>
+        <div class="wheel-caption">
+          <p><strong>Ascendant:</strong> <span id="asc-sign">—</span></p>
+          <p><strong>Moon nakshatra:</strong> <span id="moon-nakshatra">—</span></p>
+        </div>
+      </div>
+
+      <div class="grid-two">
+        <div>
+          <h3>Planetary positions <span class="tag traditional">sidereal · Lahiri</span></h3>
+          <table id="planet-table">
+            <thead>
+              <tr><th>Graha</th><th>Sign</th><th>Deg</th><th>Nakshatra</th><th>Pada</th><th></th></tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+        <div>
+          <h3>Current Vimshottari period</h3>
+          <div id="current-dasha" class="dasha-chain"></div>
+          <h3 class="mt">Full mahadasha timeline</h3>
+          <table id="dasha-table">
+            <thead><tr><th>Lord</th><th>Start</th><th>End</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="grid-two">
+        <div>
+          <h3>Numerology</h3>
+          <div id="numerology-cards" class="numerology-cards"></div>
+        </div>
+        <div>
+          <h3>Current transits</h3>
+          <div id="transit-summary"></div>
+        </div>
+      </div>
+
+      <details class="audit-trail">
+        <summary>Calculation audit trail (<span id="audit-count">0</span> steps)</summary>
+        <pre id="audit-json"></pre>
+      </details>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <p>
+      Simplified two-body planetary model (Phase 1) — see project README
+      "known limitations" before using this for anything beyond a demo.
+      Traditional interpretation and gemstone rules are not evaluated
+      on this screen; see the architecture's Phase 2/3/4 layers.
+    </p>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>

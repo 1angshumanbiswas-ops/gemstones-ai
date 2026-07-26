@@ -1,0 +1,304 @@
+/* ---- Design tokens ----
+   Background: #0F1419 (night-sky charcoal)
+   Panel:      #171E2B / #1E2635
+   Ink:        #E8E3D8 (warm parchment white)
+   Ink-dim:    #9BA3B4
+   Gold:       #C9A227 — the TRADITIONAL/astrological evidence layer
+   Cyan:       #57C7D4 — the DETERMINISTIC/calculated evidence layer
+   The gold/cyan split is not decorative: it is the same separation
+   the whole architecture insists on (Section: never present lab
+   gemology as proof of astrological effect). Traditional content
+   (nakshatra names, dasha lords, sign names) is warm gold. Calculated,
+   falsifiable output (degrees, confidence %, Julian-derived data) is
+   cool cyan. The eye learns the distinction before reading a caption.
+*/
+
+:root {
+  --bg: #0f1419;
+  --panel: #171e2b;
+  --panel-2: #1e2635;
+  --ink: #e8e3d8;
+  --ink-dim: #9ba3b4;
+  --gold: #c9a227;
+  --gold-soft: rgba(201, 162, 39, 0.16);
+  --cyan: #57c7d4;
+  --cyan-soft: rgba(87, 199, 212, 0.14);
+  --line: rgba(232, 227, 216, 0.12);
+  --font-display: "Cormorant Garamond", Georgia, serif;
+  --font-body: "Space Grotesk", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-body);
+  line-height: 1.5;
+  position: relative;
+  min-height: 100vh;
+}
+
+/* Ambient starfield — subtle, static, ~2% opacity dots via layered
+   radial-gradients rather than a heavy JS particle system. */
+.skyfield {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background-image:
+    radial-gradient(1px 1px at 10% 20%, rgba(232,227,216,0.5) 50%, transparent 50%),
+    radial-gradient(1px 1px at 80% 15%, rgba(232,227,216,0.4) 50%, transparent 50%),
+    radial-gradient(1.5px 1.5px at 60% 70%, rgba(201,162,39,0.5) 50%, transparent 50%),
+    radial-gradient(1px 1px at 30% 85%, rgba(232,227,216,0.35) 50%, transparent 50%),
+    radial-gradient(1px 1px at 92% 60%, rgba(87,199,212,0.4) 50%, transparent 50%),
+    radial-gradient(1px 1px at 45% 40%, rgba(232,227,216,0.3) 50%, transparent 50%);
+  background-repeat: no-repeat;
+}
+
+.site-header {
+  padding: 2.5rem clamp(1.25rem, 4vw, 3rem) 1.5rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem 2rem;
+  align-items: flex-end;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--line);
+}
+
+.brand { display: flex; align-items: center; gap: 0.9rem; }
+.brand-mark {
+  font-size: 2rem;
+  color: var(--gold);
+  text-shadow: 0 0 18px rgba(201,162,39,0.5);
+}
+.brand-text h1 {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 600;
+  font-size: 2rem;
+  margin: 0;
+  letter-spacing: 0.01em;
+}
+.brand-text p {
+  margin: 0.15rem 0 0;
+  color: var(--ink-dim);
+  font-size: 0.85rem;
+  letter-spacing: 0.02em;
+}
+.phase-note {
+  max-width: 34ch;
+  font-size: 0.78rem;
+  color: var(--ink-dim);
+  line-height: 1.5;
+  margin: 0;
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: 340px 1fr;
+  gap: 1.5rem;
+  padding: 1.75rem clamp(1.25rem, 4vw, 3rem) 3rem;
+  align-items: start;
+}
+@media (max-width: 900px) {
+  .layout { grid-template-columns: 1fr; }
+}
+
+.panel {
+  background: linear-gradient(180deg, var(--panel), var(--panel-2));
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 1.5rem;
+}
+
+.eyebrow {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--cyan);
+  border: 1px solid rgba(87,199,212,0.4);
+  border-radius: 4px;
+  padding: 0.1rem 0.4rem;
+  margin-right: 0.6rem;
+  vertical-align: middle;
+}
+
+h2 {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 600;
+  font-size: 1.4rem;
+  margin: 0 0 1.25rem;
+}
+h3 {
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--ink-dim);
+  margin: 0 0 0.75rem;
+  font-weight: 500;
+}
+h3.mt { margin-top: 1.5rem; }
+
+form { display: flex; flex-direction: column; gap: 1rem; }
+label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  font-size: 0.85rem;
+  color: var(--ink-dim);
+}
+input[type="date"], input[type="time"], input[type="text"], select {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 0.6rem 0.7rem;
+  color: var(--ink);
+  font-family: var(--font-mono);
+  font-size: 0.9rem;
+}
+input:focus, select:focus, button:focus {
+  outline: 2px solid var(--cyan);
+  outline-offset: 1px;
+}
+label.consent { flex-direction: row; align-items: flex-start; gap: 0.6rem; }
+label.consent input { margin-top: 0.2rem; }
+label.api-config { opacity: 0.6; font-size: 0.7rem; }
+label.api-config input { font-size: 0.75rem; padding: 0.4rem 0.6rem; }
+
+button[type="submit"] {
+  margin-top: 0.5rem;
+  background: var(--gold);
+  color: #14100a;
+  border: none;
+  border-radius: 8px;
+  padding: 0.8rem 1rem;
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: filter 0.15s ease;
+}
+button[type="submit"]:hover { filter: brightness(1.08); }
+button[type="submit"]:disabled { opacity: 0.5; cursor: wait; }
+
+.status {
+  min-height: 1.2rem;
+  font-size: 0.82rem;
+  color: var(--cyan);
+}
+.status.error { color: #e08585; }
+
+.results[hidden] { display: none; }
+
+.confidence-row { display: flex; gap: 0.75rem; flex-wrap: wrap; margin-bottom: 1.5rem; }
+.confidence-chip {
+  flex: 1;
+  min-width: 200px;
+  border-radius: 10px;
+  padding: 0.75rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+.confidence-chip.layer-astro { background: var(--cyan-soft); border: 1px solid rgba(87,199,212,0.35); }
+.confidence-chip.layer-input { background: var(--gold-soft); border: 1px solid rgba(201,162,39,0.35); }
+.chip-label { font-size: 0.72rem; color: var(--ink-dim); text-transform: uppercase; letter-spacing: 0.05em; }
+.chip-value { font-family: var(--font-mono); font-size: 1.3rem; }
+.layer-astro .chip-value { color: var(--cyan); }
+.layer-input .chip-value { color: var(--gold); }
+
+.wheel-wrap {
+  display: flex;
+  gap: 2rem;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: 2rem;
+}
+#chart-wheel { width: min(360px, 90vw); height: auto; }
+.wheel-caption p { margin: 0.3rem 0; font-size: 0.9rem; }
+.wheel-caption span { color: var(--gold); font-family: var(--font-mono); }
+
+.grid-two {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+  margin-bottom: 2rem;
+}
+@media (max-width: 700px) { .grid-two { grid-template-columns: 1fr; } }
+
+table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+th, td { text-align: left; padding: 0.45rem 0.5rem; border-bottom: 1px solid var(--line); }
+th { color: var(--ink-dim); font-weight: 500; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.04em; }
+td.mono, th.mono { font-family: var(--font-mono); }
+.retro-flag { color: var(--cyan); font-size: 0.75rem; }
+.combust-flag { color: #e0a25a; font-size: 0.75rem; }
+
+.tag {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  padding: 0.1rem 0.4rem;
+  border-radius: 4px;
+  margin-left: 0.5rem;
+  vertical-align: middle;
+}
+.tag.traditional { background: var(--gold-soft); color: var(--gold); }
+.tag.calculated { background: var(--cyan-soft); color: var(--cyan); }
+
+.dasha-chain {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+}
+.dasha-pill {
+  background: var(--gold-soft);
+  border: 1px solid rgba(201,162,39,0.35);
+  color: var(--gold);
+  border-radius: 999px;
+  padding: 0.3rem 0.9rem;
+  font-size: 0.85rem;
+  font-family: var(--font-mono);
+}
+
+.numerology-cards { display: flex; gap: 0.75rem; flex-wrap: wrap; }
+.num-card {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 0.7rem 0.9rem;
+  min-width: 90px;
+}
+.num-card .label { font-size: 0.7rem; color: var(--ink-dim); text-transform: uppercase; }
+.num-card .value { font-family: var(--font-mono); font-size: 1.4rem; color: var(--gold); }
+
+.audit-trail summary {
+  cursor: pointer;
+  color: var(--ink-dim);
+  font-size: 0.82rem;
+  padding: 0.5rem 0;
+}
+.audit-trail pre {
+  background: rgba(0,0,0,0.35);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 1rem;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  max-height: 320px;
+  overflow: auto;
+  color: var(--cyan);
+}
+
+.site-footer {
+  padding: 1.5rem clamp(1.25rem, 4vw, 3rem) 2.5rem;
+  color: var(--ink-dim);
+  font-size: 0.72rem;
+  max-width: 70ch;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; }
+}

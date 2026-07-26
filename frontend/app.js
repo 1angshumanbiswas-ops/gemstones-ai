@@ -24,6 +24,8 @@ form.addEventListener("submit", async (evt) => {
   const existingGemstones = Array.from(
     document.getElementById("existingGemstones").selectedOptions
   ).map((opt) => opt.value);
+  const budgetRaw = document.getElementById("budgetINR").value;
+  const budgetINR = budgetRaw ? Number(budgetRaw) : undefined;
 
   const payload = {
     dateOfBirth: document.getElementById("dateOfBirth").value,
@@ -31,6 +33,7 @@ form.addEventListener("submit", async (evt) => {
     timeConfidence: document.getElementById("timeConfidence").value,
     placeOfBirth: document.getElementById("placeOfBirth").value,
     existingGemstones,
+    budgetINR,
     consent: {
       givenAt: new Date().toISOString(),
       purposes: ["chart_calculation"],
@@ -78,6 +81,7 @@ function renderResult(data) {
   renderNumerology(data.numerology);
   renderTransits(data.transitSnapshot);
   renderGemstoneShortlist(data.gemstoneShortlist);
+  renderGemologyCards(data.enrichedCandidates);
 
   document.getElementById("audit-count").textContent = data.auditTrail.length;
   document.getElementById("audit-json").textContent = JSON.stringify(data.auditTrail, null, 2);
@@ -178,6 +182,31 @@ function renderGemstoneShortlist(shortlist) {
   }
 }
 
+function renderGemologyCards(enrichedCandidates) {
+  const el = document.getElementById("gemology-cards");
+  if (!enrichedCandidates || enrichedCandidates.length === 0) {
+    el.innerHTML = '<p class="no-candidates">No surviving candidates to show gemological properties for.</p>';
+    return;
+  }
+  el.innerHTML = enrichedCandidates
+    .map(({ gemology, budgetAdvisory }) => `
+      <div class="gemology-card">
+        <p class="gem-name">${gemology.gemstone}</p>
+        <dl>
+          <dt>Species</dt><dd>${gemology.mineralSpecies}</dd>
+          <dt>Hardness</dt><dd>Mohs ${gemology.mohsHardness}</dd>
+          <dt>Treatments</dt><dd>${gemology.commonTreatments.join("; ")}</dd>
+          <dt>Durability</dt><dd>${gemology.durabilityNote}</dd>
+          <dt>Care</dt><dd>${gemology.careInstructions}</dd>
+        </dl>
+        ${budgetAdvisory && budgetAdvisory.riskLevel !== "none"
+          ? `<div class="budget-advisory risk-${budgetAdvisory.riskLevel}">${budgetAdvisory.message}</div>`
+          : ""}
+      </div>
+    `)
+    .join("");
+}
+
 function renderWheel(chart) {
   const svg = document.getElementById("chart-wheel");
   const cx = 240, cy = 240;
@@ -264,5 +293,45 @@ downloadBtn.addEventListener("click", async () => {
     downloadStatusEl.classList.add("error");
   } finally {
     downloadBtn.disabled = false;
+  }
+});
+
+const certCheckBtn = document.getElementById("cert-check-btn");
+const certResultEl = document.getElementById("cert-result");
+
+certCheckBtn.addEventListener("click", async () => {
+  const laboratory = document.getElementById("cert-lab").value;
+  const reportNumber = document.getElementById("cert-report-number").value.trim();
+  if (!reportNumber) {
+    certResultEl.textContent = "Enter a report number first.";
+    certResultEl.classList.add("invalid");
+    return;
+  }
+
+  const apiBase = document.getElementById("apiBase").value.replace(/\/$/, "");
+  certResultEl.textContent = "Checking format…";
+  certResultEl.classList.remove("invalid");
+
+  try {
+    const res = await fetch(`${apiBase}/api/certificate/check`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ laboratory, reportNumber }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || "Request failed");
+
+    if (data.status === "format_invalid") {
+      certResultEl.textContent = data.guidance;
+      certResultEl.classList.add("invalid");
+    } else {
+      certResultEl.classList.remove("invalid");
+      certResultEl.innerHTML = data.reportCheckUrl
+        ? `${data.guidance} <a href="${data.reportCheckUrl}" target="_blank" rel="noopener">Open ${data.laboratory} Report Check ↗</a>`
+        : data.guidance;
+    }
+  } catch (err) {
+    certResultEl.textContent = err.message;
+    certResultEl.classList.add("invalid");
   }
 });

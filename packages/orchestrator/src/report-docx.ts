@@ -94,7 +94,7 @@ export async function buildReportDocx(result: PipelineResult): Promise<Buffer> {
       spacing: { after: 40 },
       children: [
         new TextRun({
-          text: "Birth Intelligence + Traditional Rule Engine — Phase 2 Report",
+          text: "Birth Intelligence + Traditional Rule Engine + Gemology — Phase 3 Report",
           size: 22,
           color: MUTED,
         }),
@@ -250,14 +250,58 @@ export async function buildReportDocx(result: PipelineResult): Promise<Buffer> {
     }
   }
 
+  // --- Gemological properties (separate evidence layer) ---
+  if (result.enrichedCandidates.length > 0) {
+    children.push(heading("Gemological Properties", HeadingLevel.HEADING_1));
+    children.push(
+      bodyText(
+        "A separate evidence layer from the traditional shortlist above — physical mineralogical fact, not " +
+          "astrological interpretation. Nothing here confirms or is confirmed by the traditional evidence.",
+        { italics: true, color: MUTED }
+      )
+    );
+    children.push(
+      table(
+        ["Gemstone", "Species", "Hardness", "Common treatments", "Care"],
+        result.enrichedCandidates.map((ec) => [
+          ec.gemology.gemstone,
+          ec.gemology.mineralSpecies,
+          `Mohs ${ec.gemology.mohsHardness}`,
+          ec.gemology.commonTreatments.join("; "),
+          ec.gemology.careInstructions,
+        ]),
+        [
+          TABLE_WIDTH_DXA * 0.14,
+          TABLE_WIDTH_DXA * 0.18,
+          TABLE_WIDTH_DXA * 0.1,
+          TABLE_WIDTH_DXA * 0.3,
+          TABLE_WIDTH_DXA * 0.28,
+        ]
+      )
+    );
+
+    const advisories = result.enrichedCandidates.filter((ec) => ec.budgetAdvisory && ec.budgetAdvisory.riskLevel !== "none");
+    if (advisories.length > 0) {
+      children.push(heading("Budget Advisory", HeadingLevel.HEADING_2));
+      for (const ec of advisories) {
+        children.push(
+          bodyText(`[${ec.budgetAdvisory!.riskLevel.toUpperCase().replace(/_/g, " ")}] ${ec.budgetAdvisory!.message}`, {
+            color: ec.budgetAdvisory!.riskLevel === "high_risk" ? RISK_RED : CYAN_DARK,
+          })
+        );
+      }
+    }
+  }
+
   // --- Disclaimer ---
   children.push(heading("Disclaimer", HeadingLevel.HEADING_1));
   children.push(
     bodyText(
-      "This report reflects deterministic astronomical calculation and traditional (Parashari) rule-graph " +
-        "evidence only. It has not been reviewed by a qualified astrologer or gemologist, includes no " +
-        "gemological, certification, or consumer-protection evidence, and is not a purchase recommendation. " +
-        "Stones marked \"expert review required\" must go through qualified human review before anyone acts " +
+      "This report reflects deterministic astronomical calculation, traditional (Parashari) rule-graph " +
+        "evidence, and general gemological reference data — three separate evidence layers, none of which " +
+        "proves the others. It has not been reviewed by a qualified astrologer or gemologist, includes no " +
+        "laboratory certificate verification, and is not a purchase recommendation. Stones marked " +
+        "\"expert review required\" must go through qualified human review before anyone acts " +
         "on them. No guarantee of employment, health, legal, or financial outcomes is implied by anything in " +
         "this report.",
       { bold: true }

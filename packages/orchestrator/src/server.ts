@@ -5,6 +5,7 @@ import { NominatimGeocodingProvider, type GeocodingProvider } from "@gemstones-a
 import { InMemoryAuditSink } from "./audit.js";
 import { runPipeline, type PipelineResult } from "./pipeline.js";
 import { buildReportDocx } from "./report-docx.js";
+import { checkCertificate } from "@gemstones-ai/gemology";
 
 export function createApp(geocoder: GeocodingProvider) {
   const app = express();
@@ -13,7 +14,7 @@ export function createApp(geocoder: GeocodingProvider) {
 
   // Cloud Run liveness/readiness probe.
   app.get("/healthz", (_req: Request, res: Response) => {
-    res.json({ status: "ok", phase: 2 });
+    res.json({ status: "ok", phase: 3 });
   });
 
   app.post("/api/chart", async (req: Request, res: Response) => {
@@ -32,6 +33,7 @@ export function createApp(geocoder: GeocodingProvider) {
       timeConfidence: body.timeConfidence ?? "exact",
       placeOfBirth: body.placeOfBirth,
       existingGemstones: body.existingGemstones,
+      budgetINR: body.budgetINR,
       consent: body.consent ?? {
         givenAt: new Date().toISOString(),
         purposes: ["chart_calculation"],
@@ -71,6 +73,20 @@ export function createApp(geocoder: GeocodingProvider) {
       const message = err instanceof Error ? err.message : "Unknown error";
       res.status(500).json({ error: message });
     }
+  });
+
+  // Certificate Verification Agent — deliberately does not verify
+  // anything itself (per the architecture's explicit "linking, not
+  // scraping" MVP guidance). Validates report-number format and hands
+  // back a deep link to the issuing lab's own public check page.
+  app.post("/api/certificate/check", (req: Request, res: Response) => {
+    const { laboratory, reportNumber } = req.body as { laboratory?: string; reportNumber?: string };
+    if (!laboratory || !reportNumber) {
+      res.status(400).json({ error: "laboratory and reportNumber are required" });
+      return;
+    }
+    const result = checkCertificate(laboratory, reportNumber);
+    res.json(result);
   });
 
   return app;

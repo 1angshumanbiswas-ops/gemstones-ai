@@ -9,6 +9,7 @@ import type {
   TransitSnapshot,
   GemstoneShortlistResult,
   PlanetaryFunctionalNature,
+  EnrichedGemstoneCandidate,
 } from "@gemstones-ai/shared";
 import { buildNatalChart } from "@gemstones-ai/ephemeris-mcp";
 import {
@@ -19,6 +20,7 @@ import {
 import { buildNumerologyProfile } from "@gemstones-ai/numerology";
 import { buildDashaTimeline, buildTransitSnapshot } from "@gemstones-ai/dasha";
 import { buildGemstoneShortlist } from "@gemstones-ai/rule-graph";
+import { getGemologyProfile, buildBudgetAdvisory } from "@gemstones-ai/gemology";
 import type { AuditSink } from "./audit.js";
 
 export interface PipelineResult {
@@ -30,6 +32,7 @@ export interface PipelineResult {
   transitSnapshot: TransitSnapshot;
   functionalNatures: PlanetaryFunctionalNature[];
   gemstoneShortlist: GemstoneShortlistResult;
+  enrichedCandidates: EnrichedGemstoneCandidate[];
   confidence: ConfidenceIndicators;
   auditTrail: ReturnType<AuditSink["getEntries"]>;
 }
@@ -202,6 +205,27 @@ export async function runPipeline(
     },
   });
 
+  // Step 8: Gemology Knowledge Agent + Consumer Protection Agent —
+  // attaches physical-property data and a budget-realism advisory to
+  // each surviving candidate. Deliberately kept as a SEPARATE field
+  // alongside the traditional candidate, never merged into one object
+  // — see EnrichedGemstoneCandidate's doc comment. This is the
+  // "gemological" evidence layer; it never claims to support or prove
+  // the "traditional" layer sitting next to it.
+  const enrichedCandidates: EnrichedGemstoneCandidate[] = gemstoneShortlist.surviving.map((candidate) => {
+    const gemology = getGemologyProfile(candidate.gemstone);
+    const budgetAdvisory = buildBudgetAdvisory(candidate.gemstone, gemology, input.budgetINR);
+    return { traditional: candidate, gemology, budgetAdvisory };
+  });
+  auditSink.record({
+    requestId,
+    timestamp: now(),
+    step: "gemology_lookup",
+    mcpServer: "gemology-mcp",
+    inputSummary: { candidateCount: gemstoneShortlist.surviving.length, budgetINR: input.budgetINR },
+    outputSummary: { enrichedCount: enrichedCandidates.length },
+  });
+
   const confidence: ConfidenceIndicators = {
     birthDataConfidence: birthDataConfidenceFor(input),
     astronomicalCalculationConfidence:
@@ -221,6 +245,7 @@ export async function runPipeline(
     transitSnapshot,
     functionalNatures: gemstoneShortlist.functionalNatures,
     gemstoneShortlist,
+    enrichedCandidates,
     confidence,
     auditTrail: auditSink.getEntries(),
   };

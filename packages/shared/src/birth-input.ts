@@ -23,6 +23,12 @@ export interface BirthInput {
   /** Gemstones the user already wears, if any — feeds the Gemstone
    *  Conflict Agent's existing-gemstone check (Section 6/7). */
   existingGemstones?: GemstoneName[];
+  /** Optional stated budget in INR for a gemstone purchase — feeds the
+   *  Consumer Protection Agent's budget-realism advisory (Section 12).
+   *  Purely advisory; never blocks a recommendation, only flags when a
+   *  stated budget is far below what a genuine, untreated stone of
+   *  that type typically costs. */
+  budgetINR?: number;
   /** Explicit consent record — required before any processing per DPDP notes */
   consent: {
     givenAt: string; // ISO 8601 timestamp

@@ -41,8 +41,18 @@ test("runPipeline produces a fully-assembled result with a non-empty audit trail
   assert.ok(result.gemstoneShortlist.candidates.length > 0);
   assert.ok(
     result.auditTrail.some((e) => e.step === "rule_evaluation") &&
-      result.auditTrail.some((e) => e.step === "conflict_check")
+      result.auditTrail.some((e) => e.step === "conflict_check") &&
+      result.auditTrail.some((e) => e.step === "gemology_lookup")
   );
+
+  // Phase 3: every surviving candidate should carry a separate gemology
+  // profile field, never merged into the traditional candidate object.
+  assert.equal(result.enrichedCandidates.length, result.gemstoneShortlist.surviving.length);
+  for (const ec of result.enrichedCandidates) {
+    assert.ok(ec.traditional.gemstone);
+    assert.ok(ec.gemology.mohsHardness);
+    assert.equal(ec.gemology.gemstone, ec.traditional.gemstone);
+  }
 
   // Every audit entry should carry the same requestId for traceability
   for (const entry of result.auditTrail) {
@@ -64,6 +74,26 @@ test("approximate birth time confidence is discounted, not treated as exact", as
     new Date("2026-07-26T00:00:00Z")
   );
   assert.equal(result.confidence.birthDataConfidence, 0.6);
+});
+
+test("a stated budgetINR produces a budget advisory on the matching enriched candidate", async () => {
+  const result = await runPipeline(
+    {
+      dateOfBirth: "1983-05-10",
+      timeOfBirth: "13:00",
+      timeConfidence: "exact",
+      placeOfBirth: "Kolkata",
+      budgetINR: 500, // far below any realistic gemstone tier -> should trigger high_risk
+      consent: { givenAt: new Date().toISOString(), purposes: ["chart_calculation"] },
+    },
+    KOLKATA_FIXTURE,
+    new InMemoryAuditSink(),
+    new Date("2026-07-26T00:00:00Z")
+  );
+  assert.ok(result.enrichedCandidates.length > 0);
+  const withAdvisory = result.enrichedCandidates.find((ec) => ec.budgetAdvisory);
+  assert.ok(withAdvisory);
+  assert.equal(withAdvisory!.budgetAdvisory!.riskLevel, "high_risk");
 });
 
 test("existingGemstones on the birth input flows through to the conflict check", async () => {

@@ -150,7 +150,7 @@ label {
   font-size: 0.85rem;
   color: var(--ink-dim);
 }
-input[type="date"], input[type="time"], input[type="text"], select {
+input[type="date"], input[type="time"], input[type="text"], input[type="number"], select {
   background: rgba(255,255,255,0.03);
   border: 1px solid var(--line);
   border-radius: 8px;
@@ -379,6 +379,79 @@ td.mono, th.mono { font-family: var(--font-mono); }
   color: var(--ink-dim);
   font-style: italic;
 }
+
+.gemology-cards {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.9rem;
+}
+.gemology-card {
+  flex: 1;
+  min-width: 260px;
+  background: var(--cyan-soft);
+  border: 1px solid rgba(87,199,212,0.35);
+  border-radius: 12px;
+  padding: 0.9rem 1.1rem;
+}
+.gemology-card .gem-name {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 1.2rem;
+  color: var(--cyan);
+  margin: 0 0 0.3rem;
+}
+.gemology-card dl {
+  margin: 0;
+  font-size: 0.8rem;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.2rem 0.6rem;
+}
+.gemology-card dt { color: var(--ink-dim); }
+.gemology-card dd { margin: 0; }
+.budget-advisory {
+  margin-top: 0.6rem;
+  padding: 0.5rem 0.7rem;
+  border-radius: 8px;
+  font-size: 0.78rem;
+  border-left: 3px solid var(--cyan);
+  background: rgba(255,255,255,0.03);
+}
+.budget-advisory.risk-high_risk { border-left-color: #e08585; color: #e08585; }
+
+.certificate-form {
+  display: flex;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.9rem;
+}
+.certificate-form select, .certificate-form input {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 0.5rem 0.7rem;
+  color: var(--ink);
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+}
+.certificate-form input { flex: 1; min-width: 160px; }
+#cert-check-btn {
+  background: transparent;
+  color: var(--gold);
+  border: 1px solid rgba(201,162,39,0.4);
+  border-radius: 8px;
+  padding: 0.5rem 1rem;
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+#cert-check-btn:hover { background: var(--gold-soft); }
+#cert-result {
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+#cert-result a { color: var(--cyan); }
+#cert-result.invalid { color: #e08585; }
 
 .audit-trail summary {
   cursor: pointer;

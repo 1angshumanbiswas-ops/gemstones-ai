@@ -42,7 +42,7 @@ test("POST /api/certificate/check rejects a request missing required fields", as
   }
 });
 
-test("GET /healthz reports phase 3", async () => {
+test("GET /healthz reports phase 4", async () => {
   const app = createApp(geocoder);
   const server = app.listen(0);
   const { port } = server.address() as { port: number };
@@ -50,7 +50,7 @@ test("GET /healthz reports phase 3", async () => {
   try {
     const res = await fetch(`http://localhost:${port}/healthz`);
     const body = await res.json();
-    assert.equal(body.phase, 3);
+    assert.equal(body.phase, 4);
   } finally {
     server.close();
   }

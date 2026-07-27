@@ -335,3 +335,85 @@ certCheckBtn.addEventListener("click", async () => {
     certResultEl.classList.add("invalid");
   }
 });
+
+const getExplanationBtn = document.getElementById("get-explanation-btn");
+const explanationStatusEl = document.getElementById("explanation-status");
+const explanationSectionsEl = document.getElementById("explanation-sections");
+const remedyCardsEl = document.getElementById("remedy-cards");
+
+const CONCERN_LABELS = {
+  career: "Career", finance: "Finance", health: "Health",
+  marriage: "Marriage", litigation: "Litigation", education: "Education",
+};
+
+getExplanationBtn.addEventListener("click", async () => {
+  if (!lastResult) {
+    explanationStatusEl.textContent = "Calculate a chart first.";
+    explanationStatusEl.classList.add("error");
+    return;
+  }
+
+  const concerns = Array.from(document.querySelectorAll(".concern-box:checked")).map((el) => el.value);
+  if (concerns.length === 0) {
+    explanationStatusEl.textContent = "Select at least one area above first.";
+    explanationStatusEl.classList.add("error");
+    return;
+  }
+
+  const accessCode = document.getElementById("accessCode").value;
+  const apiBase = document.getElementById("apiBase").value.replace(/\/$/, "");
+
+  getExplanationBtn.disabled = true;
+  explanationStatusEl.textContent = "Generating explanation…";
+  explanationStatusEl.classList.remove("error");
+  explanationSectionsEl.innerHTML = "";
+  remedyCardsEl.innerHTML = "";
+
+  try {
+    const res = await fetch(`${apiBase}/api/explain`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "x-access-code": accessCode },
+      body: JSON.stringify({ pipelineResult: lastResult, concerns }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || `Request failed (${res.status})`);
+
+    explanationSectionsEl.innerHTML = data.sections
+      .map(
+        (s) => `
+        <div class="explanation-card">
+          <p class="concern-label">${CONCERN_LABELS[s.concern] || s.concern}</p>
+          <p>${s.text}</p>
+        </div>
+      `
+      )
+      .join("");
+
+    remedyCardsEl.innerHTML = data.remedies
+      .map(
+        ({ forGemstone, remedy }) => `
+        <div class="gemology-card">
+          <p class="gem-name">${forGemstone} — ${remedy.planet} remedy</p>
+          <dl>
+            <dt>Deity</dt><dd>${remedy.deity}</dd>
+            <dt>Mantra</dt><dd>${remedy.mantra}</dd>
+            <dt>Fasting day</dt><dd>${remedy.fastingDay}</dd>
+            <dt>Donations</dt><dd>${remedy.donationItems.join(", ")}</dd>
+          </dl>
+        </div>
+      `
+      )
+      .join("");
+
+    if (data.flaggedAndRedacted && data.flaggedAndRedacted.length > 0) {
+      explanationSectionsEl.innerHTML += `<p class="explanation-redaction-notice">Note: ${data.flaggedAndRedacted.length} phrase(s) were caught and redacted by the Consumer Protection Agent before display.</p>`;
+    }
+
+    explanationStatusEl.textContent = "Done.";
+  } catch (err) {
+    explanationStatusEl.textContent = err.message;
+    explanationStatusEl.classList.add("error");
+  } finally {
+    getExplanationBtn.disabled = false;
+  }
+});

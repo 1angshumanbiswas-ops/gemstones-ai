@@ -1,4 +1,4 @@
-# Gemstones_AI — Phase 3
+# Gemstones_AI — Phase 4 (in progress)
 
 A transparent, expert-reviewed gemstone recommendation platform combining
 traditional astrological guidance with scientific gemology, certification
@@ -9,29 +9,29 @@ the orchestrator/MCP diagram this repo implements incrementally.
 Firebase Hosting) calling https://gemstones-ai.onrender.com (orchestrator,
 Render free tier).
 
-**Phase 1 scope**: the deterministic birth-intelligence core — birthplace
-resolution, historical timezone handling, natal chart calculation,
-Vimshottari dasha, and numerology. No LLM calls anywhere.
+**Phase 1**: deterministic birth-intelligence core. **Phase 2**: Rule-Graph
+MCP (traditional candidates + conflict detection) + downloadable Word report.
+**Phase 3**: Gemology Knowledge, Certificate Verification (format + deep
+link, never fake-verifies), Consumer Protection (banned-phrase filter,
+budget advisory).
 
-**Phase 2 scope**: the Rule-Graph MCP — functional benefic/malefic
-classification, a Traditional Rule Agent shortlisting candidates from two
-near-universal Parashari principles, and a Gemstone Conflict Agent. Adds
-a per-user downloadable Word report. Still no LLM calls.
+**Phase 4 scope** (this repo, today — first slice, more to come): the
+**Explanation Agent** — the only place in the entire pipeline an LLM is
+allowed to run, and strictly to narrate data already computed by the
+deterministic/rule-graph/gemology layers, never to generate or alter it.
+Also adds Situation Understanding (the original spec's 6 concern
+categories: Career/Finance/Health/Marriage/Litigation/Education) and
+classical Navagraha remedy data (deity/mantra/donation/fasting day per
+planet — settled traditional content, same category as the gemstone-planet
+mapping, not LLM-invented). The Consumer Protection banned-phrase filter
+from Phase 3 is now load-bearing for the first time: every LLM output
+section is scanned and redacted before being shown.
 
-**Phase 3 scope** (this repo, today, additive on top of Phases 1-2): the
-Gemology Knowledge Agent (curated Mohs hardness/treatment/care reference
-data for all 9 traditional gemstones), the Certificate Verification Agent
-(`POST /api/certificate/check` — format validation plus a deep link to the
-issuing lab's own public Report Check page; deliberately never claims to
-verify anything itself, per the architecture's explicit "linking, not
-scraping" MVP guidance), and the start of the Consumer Protection Agent
-(a tested banned-phrase filter ready for Phase 4's explanation layer, plus
-a budget-realism advisory comparing a stated purchase budget against a
-gemstone's typical market tier). The `EnrichedGemstoneCandidate` type pairs
-Phase 2's traditional evidence and Phase 3's gemological evidence as two
-SEPARATE fields — never merged into one blended object — making the app's
-core evidence-separation principle structural rather than just a UI
-convention. Still no LLM calls anywhere in the pipeline.
+**Still ahead for Phase 4**: North Indian square chart + Avakahada Chakra
+table (requested but not yet built), Firebase Auth for astrologer accounts,
+Razorpay subscription billing (real replacement for the interim access-code
+gate below), a persistent Outcome Journal (needs Firestore — first real
+database this project will have), and a Human Review dashboard.
 
 ## Why phase it this way
 
@@ -58,7 +58,8 @@ etc. — see each package's test suite). Everything after this is additive.
 | `@gemstones-ai/numerology` | Mulank, Bhagyank, personal year/month | Numerology Agent (pre-Rule-Graph) |
 | `@gemstones-ai/dasha` | Vimshottari mahadasha/antardasha, Sade Sati | Dasha & Transit Agent |
 | `@gemstones-ai/rule-graph` | Functional benefic/malefic classification, candidate gemstone generation, conflict detection | **Rule-Graph MCP** + Traditional Rule Agent + Gemstone Conflict Agent |
-| `@gemstones-ai/gemology` | Gemstone hardness/treatment/care data, certificate format check + Report Check deep links, banned-phrase filter, budget advisory | **GIA Knowledge MCP** + **GIA Report MCP** + Gemology Knowledge Agent + Certificate Verification Agent + Consumer Protection Agent |
+| `@gemstones-ai/gemology` | Gemstone hardness/treatment/care data, certificate format check + Report Check deep links, banned-phrase filter, budget advisory, remedy data | **GIA Knowledge MCP** + **GIA Report MCP** + Gemology Knowledge Agent + Certificate Verification Agent + Consumer Protection Agent |
+| `@gemstones-ai/explanation` | Explanation Agent — the only LLM call in the pipeline, strictly narrates already-computed data | **Explanation Agent** |
 | `@gemstones-ai/orchestrator` | Wires the above into one pipeline, Express HTTP API, audit trail | **GEMSTONES_AI ORCHESTRATOR** (partial) |
 | `frontend/` | Birth-data intake form + deterministic report + gemstone shortlist display | "1. Input" / output report (partial) |
 
@@ -177,6 +178,14 @@ PORT=8080 npm run dev:orchestrator
   https://gemstones-ai.onrender.com — note the free tier spins down
   after ~15 minutes of inactivity, so the first request after a gap
   takes 30-60s (cold start).
+- **Phase 4 requires two new Render environment variables** before
+  `/api/explain` works at all: `ANTHROPIC_API_KEY` (your own key — this
+  endpoint spends real money per call) and `ASTROLOGER_ACCESS_CODE` (a
+  secret you choose and hand to test astrologers; the frontend sends it
+  as the `x-access-code` header). Without both set, the endpoint returns
+  503, not a crash — safe by default. **Do not share the access code
+  publicly** — it's the only thing standing between the open internet and
+  your Anthropic bill until Razorpay subscription billing replaces it.
 - **Data** → not yet used; the orchestrator's `InMemoryAuditSink` is
   per-request only and nothing persists between calls. Firestore remains
   the planned destination for the audit trail and (later) GIA knowledge-
@@ -191,9 +200,10 @@ PORT=8080 npm run dev:orchestrator
 
 ## What's deliberately NOT here yet
 
-Situation Understanding Agent (classifying the user's stated concern),
-Human Review workflow (a real dashboard for astrologers/gemologists —
-Phase 2/3 only *flag* high-impact stones, they don't route them anywhere),
-Explanation Agent, Outcome Journal, DPDP consent UI/storage, and any LLM
-call. These are Phase 4 per the architecture diagram and this project's
-own phased build plan.
+North Indian square chart + Avakahada Chakra table (requested, queued for
+a follow-up), Human Review dashboard (stones are *flagged*, still no real
+reviewer workflow), Firebase Auth for astrologer accounts, Razorpay
+subscription billing (Phase 4's Explanation Agent currently runs behind a
+manual access-code gate as an interim safeguard), persistent Outcome
+Journal (needs Firestore — first real database this project will have),
+and DPDP consent UI/storage.

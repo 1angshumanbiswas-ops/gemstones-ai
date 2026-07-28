@@ -9,7 +9,7 @@ test("buildSystemPrompt forbids every category of claim Section 12 names", () =>
   assert.match(prompt, /NEVER guarantee/i);
   assert.match(prompt, /NEVER make medical claims/i);
   assert.match(prompt, /energised/i);
-  assert.match(prompt, /JSON/);
+  assert.match(prompt, /tool/i);
 });
 
 test("buildUserContext includes every planet, the dasha period, and requested concerns", () => {

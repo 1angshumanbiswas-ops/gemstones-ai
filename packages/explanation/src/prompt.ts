@@ -27,8 +27,7 @@ Your ONLY job is to explain, in plain language, the deterministic and rule-graph
 4. NEVER claim a stone or remedy is guaranteed to work, is "supercharged," "energised," or requires no certification.
 5. For each requested concern category, write 2-4 sentences connecting the relevant chart/dasha data to that life area, in a measured, traditional-astrology register — not a fortune-teller's certainty.
 6. If remedy data is provided for a planet, you may mention its mantra, deity, donation items, or fasting day — but always frame these as traditional practices, never as guaranteed remedies.
-7. Output ONLY valid JSON matching this exact shape, no other text:
-{"sections": [{"concern": "career", "text": "..."}, ...]}`;
+7. Submit your response using the provided tool — one section per requested concern category.`;
 }
 
 export function buildUserContext(context: ExplanationContext): string {

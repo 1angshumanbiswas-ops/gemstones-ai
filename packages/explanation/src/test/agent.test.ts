@@ -1,20 +1,17 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { parseLLMJson, applyConsumerProtection } from "../agent.js";
+import { validateLLMOutput, applyConsumerProtection } from "../agent.js";
 
-test("parseLLMJson parses clean JSON output", () => {
-  const result = parseLLMJson('{"sections": [{"concern": "career", "text": "hello"}]}');
+test("validateLLMOutput accepts a well-formed sections array", () => {
+  const result = validateLLMOutput({ sections: [{ concern: "career", text: "hello" }] });
   assert.equal(result.sections.length, 1);
   assert.equal(result.sections[0].concern, "career");
 });
 
-test("parseLLMJson strips a markdown code fence if Claude adds one despite instructions", () => {
-  const result = parseLLMJson('```json\n{"sections": [{"concern": "career", "text": "hello"}]}\n```');
-  assert.equal(result.sections.length, 1);
-});
-
-test("parseLLMJson throws a clear error on a malformed shape rather than silently returning garbage", () => {
-  assert.throws(() => parseLLMJson('{"notSections": []}'));
+test("validateLLMOutput throws a clear error when sections is missing or malformed, rather than silently returning garbage", () => {
+  assert.throws(() => validateLLMOutput({ notSections: [] }));
+  assert.throws(() => validateLLMOutput(null));
+  assert.throws(() => validateLLMOutput("not an object"));
 });
 
 test("applyConsumerProtection redacts a banned claim and records what was caught", () => {

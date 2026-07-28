@@ -76,6 +76,8 @@ function renderResult(data) {
     `${moon.nakshatra.name} (pada ${moon.nakshatra.pada})`;
 
   renderWheel(data.natalChart);
+  renderNorthIndianChart(data.natalChart);
+  renderAvakahadaChakra(data.natalChart, data.numerology);
   renderPlanetTable(data.natalChart.planets);
   renderDasha(data.dashaTimeline);
   renderNumerology(data.numerology);
@@ -206,6 +208,26 @@ function renderGemologyCards(enrichedCandidates) {
     `)
     .join("");
 }
+
+// --- Avakahada Chakra reference tables (classical, index 0 = nakshatra/sign 1) ---
+const NADI_BY_NAKSHATRA = [
+  "Adi","Madhya","Antya","Antya","Madhya","Adi","Adi","Madhya","Antya",
+  "Antya","Madhya","Adi","Adi","Madhya","Antya","Antya","Madhya","Adi",
+  "Adi","Madhya","Antya","Antya","Madhya","Adi","Adi","Madhya","Antya",
+];
+const YONI_BY_NAKSHATRA = [
+  "Horse","Elephant","Sheep","Serpent","Serpent","Dog","Cat","Sheep","Cat",
+  "Rat","Rat","Cow","Buffalo","Tiger","Buffalo","Tiger","Deer","Deer",
+  "Dog","Monkey","Mongoose","Monkey","Lion","Horse","Lion","Cow","Elephant",
+];
+const GANA_BY_NAKSHATRA = [
+  "Deva","Manushya","Rakshasa","Manushya","Deva","Manushya","Deva","Deva","Rakshasa",
+  "Rakshasa","Manushya","Manushya","Manushya","Rakshasa","Deva","Rakshasa","Deva","Rakshasa",
+  "Rakshasa","Manushya","Manushya","Deva","Rakshasa","Manushya","Manushya","Deva","Deva",
+];
+const VARNA_BY_SIGN = ["Kshatriya","Vaishya","Shudra","Brahmin","Kshatriya","Vaishya","Shudra","Brahmin","Kshatriya","Vaishya","Shudra","Brahmin"];
+const VASHYA_BY_SIGN = ["Chatushpada","Chatushpada","Manava","Jalachara","Vanachara","Manava","Manava","Keeta","Chatushpada","Chatushpada","Manava","Jalachara"];
+const ELEMENT_BY_SIGN = ["Fire (Agni)","Earth (Prithvi)","Air (Vayu)","Water (Jala)","Fire (Agni)","Earth (Prithvi)","Air (Vayu)","Water (Jala)","Fire (Agni)","Earth (Prithvi)","Air (Vayu)","Water (Jala)"];
 
 function renderWheel(chart) {
   const svg = document.getElementById("chart-wheel");
@@ -420,3 +442,75 @@ getExplanationBtn.addEventListener("click", async () => {
     getExplanationBtn.disabled = false;
   }
 });
+
+// --- North Indian square Lagna chart (fixed-house style: house 1 is
+// always the top kite; houses proceed clockwise; the SIGN in each
+// house varies by ascendant, using the same whole-sign houseSignIndex
+// data already computed server-side for the circular wheel). ---
+const NORTH_INDIAN_HOUSE_POLYGONS = [
+  [[200, 0], [300, 100], [200, 200], [100, 100]],   // House 1 (kite, top)
+  [[200, 0], [400, 0], [300, 100]],                  // House 2
+  [[400, 0], [400, 200], [300, 100]],                // House 3
+  [[400, 200], [300, 300], [200, 200], [300, 100]],  // House 4 (kite, right)
+  [[400, 200], [400, 400], [300, 300]],               // House 5
+  [[400, 400], [200, 400], [300, 300]],               // House 6
+  [[200, 400], [100, 300], [200, 200], [300, 300]],  // House 7 (kite, bottom)
+  [[200, 400], [0, 400], [100, 300]],                 // House 8
+  [[0, 400], [0, 200], [100, 300]],                   // House 9
+  [[0, 200], [100, 100], [200, 200], [100, 300]],    // House 10 (kite, left)
+  [[0, 200], [0, 0], [100, 100]],                     // House 11
+  [[0, 0], [200, 0], [100, 100]],                     // House 12
+];
+const NORTH_INDIAN_HOUSE_LABEL_POS = [
+  [200, 90], [300, 33], [366, 100], [300, 200], [366, 300], [300, 366],
+  [200, 300], [100, 366], [33, 300], [100, 200], [33, 100], [100, 33],
+];
+
+function renderNorthIndianChart(chart) {
+  const svg = document.getElementById("north-indian-chart");
+  const parts = [];
+
+  // Outer square + both diagonals + inner diamond (the classical construction)
+  parts.push(`<rect x="0" y="0" width="400" height="400" fill="none" stroke="rgba(232,227,216,0.25)" stroke-width="1.5" />`);
+  parts.push(`<line x1="0" y1="0" x2="400" y2="400" stroke="rgba(232,227,216,0.25)" stroke-width="1.5" />`);
+  parts.push(`<line x1="400" y1="0" x2="0" y2="400" stroke="rgba(232,227,216,0.25)" stroke-width="1.5" />`);
+  parts.push(`<polygon points="200,0 400,200 200,400 0,200" fill="none" stroke="rgba(232,227,216,0.25)" stroke-width="1.5" />`);
+
+  // Sign number in each house (whole-sign: house N holds houseSignIndex[N])
+  for (let house = 1; house <= 12; house++) {
+    const signIndex = chart.houses.houseSignIndex[house];
+    const [lx, ly] = NORTH_INDIAN_HOUSE_LABEL_POS[house - 1];
+    parts.push(`<text x="${lx}" y="${ly - 14}" text-anchor="middle" fill="#c9a227" font-size="13" font-family="monospace">${signIndex}</text>`);
+
+    const planetsHere = chart.planets.filter((p) => p.signIndex === signIndex);
+    planetsHere.forEach((p, i) => {
+      const abbr = p.planet.slice(0, 2);
+      parts.push(
+        `<text x="${lx}" y="${ly + i * 15}" text-anchor="middle" fill="#57c7d4" font-size="12" font-family="monospace">${abbr}${p.isRetrograde ? "℞" : ""}</text>`
+      );
+    });
+  }
+
+  svg.innerHTML = parts.join("");
+}
+
+function renderAvakahadaChakra(chart, numerology) {
+  const moon = chart.planets.find((p) => p.planet === "Moon");
+  const nakIdx = moon.nakshatra.index - 1; // 0-based
+  const signIdx = moon.signIndex - 1; // 0-based
+
+  const rows = [
+    ["Nakshatra", moon.nakshatra.name],
+    ["Nadi", NADI_BY_NAKSHATRA[nakIdx]],
+    ["Yoni", YONI_BY_NAKSHATRA[nakIdx]],
+    ["Gana", GANA_BY_NAKSHATRA[nakIdx]],
+    ["Moon sign", SIGN_NAMES[signIdx]],
+    ["Varna", VARNA_BY_SIGN[signIdx]],
+    ["Vashya", VASHYA_BY_SIGN[signIdx]],
+    ["Yunja", NADI_BY_NAKSHATRA[nakIdx]],
+    ["Element (Tattva)", ELEMENT_BY_SIGN[signIdx]],
+  ];
+
+  const tbody = document.querySelector("#avakahada-table tbody");
+  tbody.innerHTML = rows.map(([label, value]) => `<tr><td>${label}</td><td>${value}</td></tr>`).join("");
+}

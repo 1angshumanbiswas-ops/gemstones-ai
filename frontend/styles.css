@@ -364,6 +364,33 @@ td.mono, th.mono { font-family: var(--font-mono); }
   margin-top: 0.8rem;
 }
 
+.north-indian-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+.chart-label {
+  font-size: 0.85rem;
+  color: var(--ink-dim);
+  margin: 0;
+}
+#north-indian-chart { width: min(320px, 85vw); height: auto; }
+
+#avakahada-table td {
+  padding: 0.4rem 0.7rem;
+  font-size: 0.85rem;
+  border-bottom: 1px solid var(--line);
+}
+#avakahada-table td:first-child {
+  color: var(--ink-dim);
+  width: 40%;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+}
+#avakahada-table td:last-child { color: var(--gold); }
+
 .blueprint-headline {
   font-family: var(--font-display);
   font-style: italic;

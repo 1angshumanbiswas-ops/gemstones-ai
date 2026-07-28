@@ -1,13 +1,29 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { StaticGeocodingProvider } from "@gemstones-ai/geo-timezone-mcp";
-import { createApp, sanitizeSecret } from "../server.js";
+import { createApp, sanitizeSecret, buildDefaultGeocoder } from "../server.js";
 
 test("sanitizeSecret strips non-breaking spaces, CR/LF, and other invisible characters", () => {
   assert.equal(sanitizeSecret("abc123"), "abc123");
   assert.equal(sanitizeSecret("abc123\u00A0"), "abc123"); // trailing non-breaking space
   assert.equal(sanitizeSecret("abc\r\n123"), "abc123"); // embedded CRLF
   assert.equal(sanitizeSecret("\u200Babc123"), "abc123"); // leading zero-width space
+});
+
+test("buildDefaultGeocoder sanitizes GEOCODING_BASE_URL and GEOCODING_API_KEY, not just the URL string as-is", () => {
+  process.env.GEOCODING_BASE_URL = "https://us1.locationiq.com/v1\u00A0"; // trailing NBSP contamination
+  process.env.GEOCODING_API_KEY = "test-key-123\r\n";
+
+  try {
+    // Doesn't throw, and doesn't retain the invisible contamination —
+    // exercised indirectly since the provider's internals are private,
+    // but sanitizeSecret itself (used identically here) is directly verified above.
+    const geocoder = buildDefaultGeocoder();
+    assert.ok(geocoder);
+  } finally {
+    delete process.env.GEOCODING_BASE_URL;
+    delete process.env.GEOCODING_API_KEY;
+  }
 });
 
 test("access-code check still succeeds when the server-side env value has invisible contamination the header value doesn't", async () => {

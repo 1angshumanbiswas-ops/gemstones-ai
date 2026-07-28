@@ -192,10 +192,17 @@ export function createApp(geocoder: GeocodingProvider) {
 }
 
 export function buildDefaultGeocoder(): GeocodingProvider {
+  const baseUrl = process.env.GEOCODING_BASE_URL
+    ? sanitizeSecret(process.env.GEOCODING_BASE_URL)
+    : "https://nominatim.openstreetmap.org";
+  const apiKey = process.env.GEOCODING_API_KEY
+    ? sanitizeSecret(process.env.GEOCODING_API_KEY)
+    : undefined;
+
   return new NominatimGeocodingProvider(
-    process.env.GEOCODING_BASE_URL ?? "https://nominatim.openstreetmap.org",
+    baseUrl,
     process.env.GEOCODING_USER_AGENT ??
       "gemstones-ai/0.1 (contact: set GEOCODING_USER_AGENT env var)",
-    process.env.GEOCODING_API_KEY
+    apiKey
   );
 }

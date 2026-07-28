@@ -376,7 +376,10 @@ getExplanationBtn.addEventListener("click", async () => {
       body: JSON.stringify({ pipelineResult: lastResult, concerns }),
     });
     const data = await res.json();
-    if (!res.ok) throw new Error(data.error || `Request failed (${res.status})`);
+    if (!res.ok) {
+      const detail = [data.errorName, data.errorCause].filter(Boolean).join(": ");
+      throw new Error((data.error || `Request failed (${res.status})`) + (detail ? ` [${detail}]` : ""));
+    }
 
     explanationSectionsEl.innerHTML = data.sections
       .map(

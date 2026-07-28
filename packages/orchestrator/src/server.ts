@@ -151,8 +151,23 @@ export function createApp(geocoder: GeocodingProvider) {
       const result = await generateExplanation(context, { anthropicApiKey: apiKey }, pipelineResult.requestId);
       res.json(result);
     } catch (err) {
+      // "Connection error." from the Anthropic SDK means the network
+      // request itself failed before any HTTP response came back —
+      // the real cause (DNS failure, TLS failure, timeout, etc.) is
+      // usually on err.cause, which the SDK's own .message doesn't
+      // include. Log the full error server-side and surface as much
+      // detail as we can in the response, since this is still behind
+      // the access-code gate and diagnosing this is the priority
+      // right now, not response minimalism.
+      console.error("Explanation Agent error:", err);
       const message = err instanceof Error ? err.message : "Unknown error";
-      res.status(502).json({ error: `Explanation Agent failed: ${message}` });
+      const cause = err instanceof Error && err.cause ? String(err.cause) : undefined;
+      const name = err instanceof Error ? err.name : undefined;
+      res.status(502).json({
+        error: `Explanation Agent failed: ${message}`,
+        errorName: name,
+        errorCause: cause,
+      });
     }
   });
 

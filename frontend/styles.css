@@ -87,6 +87,14 @@ body {
   font-size: 0.85rem;
   letter-spacing: 0.02em;
 }
+.site-about {
+  max-width: 46ch;
+  font-size: 0.8rem;
+  color: var(--ink-dim);
+  line-height: 1.55;
+  margin: 0;
+  flex: 1 1 320px;
+}
 .phase-note {
   max-width: 34ch;
   font-size: 0.78rem;

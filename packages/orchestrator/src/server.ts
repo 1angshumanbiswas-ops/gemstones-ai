@@ -14,6 +14,22 @@ const SIGN_NAMES = [
   "Libra", "Scorpio", "Sagittarius", "Capricorn", "Aquarius", "Pisces",
 ];
 
+/**
+ * Env vars and headers pasted through a browser/OS clipboard chain can
+ * silently pick up invisible characters (non-breaking spaces, stray
+ * CR/LF, zero-width characters) that render identically to the real
+ * value in a text editor but make Node's HTTP layer reject them
+ * outright ("is not a legal HTTP header value") or make a strict
+ * string comparison fail. Both the API key and the access code are
+ * exactly the kind of secret that gets copy-pasted through several
+ * hops (a password manager, a notes app, a dashboard textbox), so
+ * both are sanitized to their printable-ASCII content before use,
+ * rather than relying on every copy-paste along the way being clean.
+ */
+export function sanitizeSecret(value: string): string {
+  return value.replace(/[^\x21-\x7E]/g, "");
+}
+
 export function createApp(geocoder: GeocodingProvider) {
   const app = express();
   app.use(cors());
@@ -115,16 +131,17 @@ export function createApp(geocoder: GeocodingProvider) {
       res.status(503).json({ error: "Explanation Agent is not configured (ASTROLOGER_ACCESS_CODE not set on the server)." });
       return;
     }
-    if (accessCode !== requiredCode) {
+    if (!accessCode || sanitizeSecret(accessCode) !== sanitizeSecret(requiredCode)) {
       res.status(401).json({ error: "Invalid or missing access code." });
       return;
     }
 
-    const apiKey = process.env.ANTHROPIC_API_KEY;
-    if (!apiKey) {
+    const rawApiKey = process.env.ANTHROPIC_API_KEY;
+    if (!rawApiKey) {
       res.status(503).json({ error: "Explanation Agent is not configured (ANTHROPIC_API_KEY not set on the server)." });
       return;
     }
+    const apiKey = sanitizeSecret(rawApiKey);
 
     const { pipelineResult, concerns } = req.body as {
       pipelineResult?: PipelineResult;

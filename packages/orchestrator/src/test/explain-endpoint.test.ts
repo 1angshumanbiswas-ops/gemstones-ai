@@ -1,7 +1,38 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { StaticGeocodingProvider } from "@gemstones-ai/geo-timezone-mcp";
-import { createApp } from "../server.js";
+import { createApp, sanitizeSecret } from "../server.js";
+
+test("sanitizeSecret strips non-breaking spaces, CR/LF, and other invisible characters", () => {
+  assert.equal(sanitizeSecret("abc123"), "abc123");
+  assert.equal(sanitizeSecret("abc123\u00A0"), "abc123"); // trailing non-breaking space
+  assert.equal(sanitizeSecret("abc\r\n123"), "abc123"); // embedded CRLF
+  assert.equal(sanitizeSecret("\u200Babc123"), "abc123"); // leading zero-width space
+});
+
+test("access-code check still succeeds when the server-side env value has invisible contamination the header value doesn't", async () => {
+  process.env.ASTROLOGER_ACCESS_CODE = "clean-code\u00A0"; // simulates a contaminated paste into Render
+  process.env.ANTHROPIC_API_KEY = "sk-ant-fake-for-test";
+
+  const app = createApp(new StaticGeocodingProvider({}));
+  const server = app.listen(0);
+  const { port } = server.address() as { port: number };
+
+  try {
+    const res = await fetch(`http://localhost:${port}/api/explain`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "x-access-code": "clean-code" },
+      body: JSON.stringify({}),
+    });
+    // Should get past the 401 gate (to 400 body validation), proving
+    // the sanitized comparison matched despite the contamination.
+    assert.equal(res.status, 400);
+  } finally {
+    server.close();
+    delete process.env.ASTROLOGER_ACCESS_CODE;
+    delete process.env.ANTHROPIC_API_KEY;
+  }
+});
 
 const geocoder = new StaticGeocodingProvider({});
 

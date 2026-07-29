@@ -244,18 +244,18 @@ function renderWheel(chart) {
     parts.push(`
       <path d="M ${cx} ${cy} L ${cx + outerR * Math.cos(a0)} ${cy + outerR * Math.sin(a0)}
                 A ${outerR} ${outerR} 0 0 1 ${cx + outerR * Math.cos(a1)} ${cy + outerR * Math.sin(a1)} Z"
-            fill="${isAsc ? "rgba(201,162,39,0.10)" : "transparent"}"
-            stroke="rgba(232,227,216,0.14)" stroke-width="1" />
+            fill="${isAsc ? "rgba(143,100,10,0.12)" : "transparent"}"
+            stroke="rgba(43,33,24,0.18)" stroke-width="1" />
     `);
     const midA = (a0 + a1) / 2;
     const labelX = cx + signR * Math.cos(midA);
     const labelY = cy + signR * Math.sin(midA);
     parts.push(`<text x="${labelX}" y="${labelY}" text-anchor="middle" dominant-baseline="middle"
-                  fill="#c9a227" font-size="18" font-family="serif">${SIGN_GLYPHS[i]}</text>`);
+                  fill="#8f640a" font-size="18" font-family="serif">${SIGN_GLYPHS[i]}</text>`);
   }
 
   // inner circle
-  parts.push(`<circle cx="${cx}" cy="${cy}" r="${innerR}" fill="none" stroke="rgba(87,199,212,0.35)" stroke-width="1" />`);
+  parts.push(`<circle cx="${cx}" cy="${cy}" r="${innerR}" fill="none" stroke="rgba(139,41,66,0.35)" stroke-width="1" />`);
 
   // planet markers by sidereal longitude
   for (const p of chart.planets) {
@@ -264,9 +264,9 @@ function renderWheel(chart) {
     const y = cy + planetR * Math.sin(angle);
     parts.push(`
       <g>
-        <circle cx="${x}" cy="${y}" r="14" fill="#171e2b" stroke="#57c7d4" stroke-width="1.5" />
+        <circle cx="${x}" cy="${y}" r="14" fill="#f3e8d0" stroke="#8b2942" stroke-width="1.5" />
         <text x="${x}" y="${y}" text-anchor="middle" dominant-baseline="central"
-              fill="#57c7d4" font-size="13" font-family="serif">${PLANET_GLYPHS[p.planet]}</text>
+              fill="#8b2942" font-size="13" font-family="serif">${PLANET_GLYPHS[p.planet]}</text>
       </g>
     `);
   }
@@ -274,7 +274,7 @@ function renderWheel(chart) {
   // ascendant marker line
   const ascAngle = (chart.houses.ascendantSiderealLongitude - 90) * (Math.PI / 180);
   parts.push(`<line x1="${cx}" y1="${cy}" x2="${cx + outerR * Math.cos(ascAngle)}" y2="${cy + outerR * Math.sin(ascAngle)}"
-                stroke="#c9a227" stroke-width="2" stroke-dasharray="4 3" />`);
+                stroke="#8f640a" stroke-width="2" stroke-dasharray="4 3" />`);
 
   svg.innerHTML = parts.join("");
 }
@@ -471,22 +471,22 @@ function renderNorthIndianChart(chart) {
   const parts = [];
 
   // Outer square + both diagonals + inner diamond (the classical construction)
-  parts.push(`<rect x="0" y="0" width="400" height="400" fill="none" stroke="rgba(232,227,216,0.25)" stroke-width="1.5" />`);
-  parts.push(`<line x1="0" y1="0" x2="400" y2="400" stroke="rgba(232,227,216,0.25)" stroke-width="1.5" />`);
-  parts.push(`<line x1="400" y1="0" x2="0" y2="400" stroke="rgba(232,227,216,0.25)" stroke-width="1.5" />`);
-  parts.push(`<polygon points="200,0 400,200 200,400 0,200" fill="none" stroke="rgba(232,227,216,0.25)" stroke-width="1.5" />`);
+  parts.push(`<rect x="0" y="0" width="400" height="400" fill="none" stroke="rgba(43,33,24,0.22)" stroke-width="1.5" />`);
+  parts.push(`<line x1="0" y1="0" x2="400" y2="400" stroke="rgba(43,33,24,0.22)" stroke-width="1.5" />`);
+  parts.push(`<line x1="400" y1="0" x2="0" y2="400" stroke="rgba(43,33,24,0.22)" stroke-width="1.5" />`);
+  parts.push(`<polygon points="200,0 400,200 200,400 0,200" fill="none" stroke="rgba(43,33,24,0.22)" stroke-width="1.5" />`);
 
   // Sign number in each house (whole-sign: house N holds houseSignIndex[N])
   for (let house = 1; house <= 12; house++) {
     const signIndex = chart.houses.houseSignIndex[house];
     const [lx, ly] = NORTH_INDIAN_HOUSE_LABEL_POS[house - 1];
-    parts.push(`<text x="${lx}" y="${ly - 14}" text-anchor="middle" fill="#c9a227" font-size="13" font-family="monospace">${signIndex}</text>`);
+    parts.push(`<text x="${lx}" y="${ly - 14}" text-anchor="middle" fill="#8f640a" font-size="13" font-family="monospace">${signIndex}</text>`);
 
     const planetsHere = chart.planets.filter((p) => p.signIndex === signIndex);
     planetsHere.forEach((p, i) => {
       const abbr = p.planet.slice(0, 2);
       parts.push(
-        `<text x="${lx}" y="${ly + i * 15}" text-anchor="middle" fill="#57c7d4" font-size="12" font-family="monospace">${abbr}${p.isRetrograde ? "℞" : ""}</text>`
+        `<text x="${lx}" y="${ly + i * 15}" text-anchor="middle" fill="#8b2942" font-size="12" font-family="monospace">${abbr}${p.isRetrograde ? "℞" : ""}</text>`
       );
     });
   }

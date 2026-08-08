@@ -30,6 +30,26 @@ function goToPage1() {
 
 backBtn.addEventListener("click", goToPage1);
 
+const toolPreviewHintEl = document.getElementById("tool-preview-hint");
+
+document.querySelectorAll(".tool-card").forEach((card) => {
+  card.addEventListener("click", () => {
+    if (!lastResult) {
+      toolPreviewHintEl.textContent = "Calculate your chart first, then this will jump straight to that section.";
+      toolPreviewHintEl.classList.remove("error");
+      return;
+    }
+    toolPreviewHintEl.textContent = "";
+    goToPage2();
+    const targetId = card.getAttribute("data-target");
+    // wait one frame for Page 2 to become visible before scrolling
+    requestAnimationFrame(() => {
+      const targetEl = document.getElementById(targetId);
+      if (targetEl) targetEl.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  });
+});
+
 form.addEventListener("submit", async (evt) => {
   evt.preventDefault();
   const submitBtn = form.querySelector("button[type=submit]");

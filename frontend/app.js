@@ -120,6 +120,7 @@ function renderResult(data) {
   renderTransits(data.transitSnapshot);
   renderGemstoneShortlist(data.gemstoneShortlist);
   renderGemologyCards(data.enrichedCandidates);
+  renderToolCardPreviews(data);
 
   document.getElementById("audit-count").textContent = data.auditTrail.length;
   document.getElementById("audit-json").textContent = JSON.stringify(data.auditTrail, null, 2);
@@ -471,6 +472,10 @@ getExplanationBtn.addEventListener("click", async () => {
     }
 
     explanationStatusEl.textContent = "Done.";
+    const previewExplanationEl = document.getElementById("preview-explanation");
+    if (previewExplanationEl) {
+      previewExplanationEl.textContent = `Generated for ${data.sections.length} area(s) — scroll down to read`;
+    }
   } catch (err) {
     explanationStatusEl.textContent = err.message;
     explanationStatusEl.classList.add("error");
@@ -549,4 +554,27 @@ function renderAvakahadaChakra(chart, numerology) {
 
   const tbody = document.querySelector("#avakahada-table tbody");
   tbody.innerHTML = rows.map(([label, value]) => `<tr><td>${label}</td><td>${value}</td></tr>`).join("");
+}
+
+/** Populates the four "What's in your report" preview cards with a
+ *  live one-line summary drawn from the just-computed result, rather
+ *  than leaving them as static description-only teasers. Called right
+ *  after a successful chart calculation. */
+function renderToolCardPreviews(data) {
+  const moon = data.natalChart.planets.find((p) => p.planet === "Moon");
+  const ascName = SIGN_NAMES[data.natalChart.houses.ascendantSignIndex - 1];
+
+  document.getElementById("preview-chart").textContent =
+    `${ascName} ascendant · ${moon.nakshatra.name} nakshatra`;
+
+  const topCandidate = data.gemstoneShortlist.surviving[0];
+  document.getElementById("preview-shortlist").textContent = topCandidate
+    ? `Top candidate: ${topCandidate.gemstone} (${topCandidate.forPlanet})`
+    : "No candidates survived the conflict check for this chart";
+
+  document.getElementById("preview-certificate").textContent =
+    "Available now — works independently of your chart";
+
+  document.getElementById("preview-explanation").textContent =
+    "Select areas below and enter your access code to generate";
 }

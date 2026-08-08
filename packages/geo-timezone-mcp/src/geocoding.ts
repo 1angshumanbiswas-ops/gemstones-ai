@@ -75,3 +75,35 @@ export class StaticGeocodingProvider implements GeocodingProvider {
     return match;
   }
 }
+
+/**
+ * Wraps a primary provider (e.g. a paid LocationIQ/Geoapify key) with
+ * a secondary fallback (e.g. public Nominatim) so a single provider
+ * hitting its own rate limit or quota doesn't take down the whole
+ * chart-calculation flow. Tries the primary first; only falls back on
+ * failure, so the compliant paid provider is still used for the vast
+ * majority of requests — the fallback is a safety net, not the
+ * default path.
+ */
+export class FallbackGeocodingProvider implements GeocodingProvider {
+  constructor(
+    private readonly primary: GeocodingProvider,
+    private readonly fallback: GeocodingProvider
+  ) {}
+
+  async resolvePlace(placeText: string): Promise<GeoCoordinates> {
+    try {
+      return await this.primary.resolvePlace(placeText);
+    } catch (primaryErr) {
+      try {
+        return await this.fallback.resolvePlace(placeText);
+      } catch (fallbackErr) {
+        const primaryMsg = primaryErr instanceof Error ? primaryErr.message : String(primaryErr);
+        const fallbackMsg = fallbackErr instanceof Error ? fallbackErr.message : String(fallbackErr);
+        throw new Error(
+          `Both geocoding providers failed for "${placeText}". Primary: ${primaryMsg} | Fallback: ${fallbackMsg}`
+        );
+      }
+    }
+  }
+}

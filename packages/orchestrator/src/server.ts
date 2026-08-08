@@ -1,7 +1,7 @@
 import express, { type Request, type Response } from "express";
 import cors from "cors";
 import type { BirthInput } from "@gemstones-ai/shared";
-import { NominatimGeocodingProvider, type GeocodingProvider } from "@gemstones-ai/geo-timezone-mcp";
+import { NominatimGeocodingProvider, FallbackGeocodingProvider, type GeocodingProvider } from "@gemstones-ai/geo-timezone-mcp";
 import { InMemoryAuditSink } from "./audit.js";
 import { runPipeline, type PipelineResult } from "./pipeline.js";
 import { buildReportDocx } from "./report-docx.js";
@@ -192,17 +192,22 @@ export function createApp(geocoder: GeocodingProvider) {
 }
 
 export function buildDefaultGeocoder(): GeocodingProvider {
-  const baseUrl = process.env.GEOCODING_BASE_URL
+  const configuredBaseUrl = process.env.GEOCODING_BASE_URL
     ? sanitizeSecret(process.env.GEOCODING_BASE_URL)
-    : "https://nominatim.openstreetmap.org";
+    : undefined;
   const apiKey = process.env.GEOCODING_API_KEY
     ? sanitizeSecret(process.env.GEOCODING_API_KEY)
     : undefined;
+  const userAgent =
+    process.env.GEOCODING_USER_AGENT ?? "gemstones-ai/0.1 (contact: set GEOCODING_USER_AGENT env var)";
 
-  return new NominatimGeocodingProvider(
-    baseUrl,
-    process.env.GEOCODING_USER_AGENT ??
-      "gemstones-ai/0.1 (contact: set GEOCODING_USER_AGENT env var)",
-    apiKey
+  const publicNominatim = new NominatimGeocodingProvider(
+    "https://nominatim.openstreetmap.org",
+    userAgent
   );
+
+  if (!configuredBaseUrl) return publicNominatim;
+
+  const primary = new NominatimGeocodingProvider(configuredBaseUrl, userAgent, apiKey);
+  return new FallbackGeocodingProvider(primary, publicNominatim);
 }

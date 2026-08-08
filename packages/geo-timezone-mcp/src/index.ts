@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 export { resolveHistoricalTimezone, toUtcIso } from "./timezone.js";
-export { NominatimGeocodingProvider, StaticGeocodingProvider } from "./geocoding.js";
+export { NominatimGeocodingProvider, StaticGeocodingProvider, FallbackGeocodingProvider } from "./geocoding.js";
 export type { GeocodingProvider } from "./geocoding.js";
 export { createGeoTimezoneMcpServer } from "./server.js";
 

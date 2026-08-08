@@ -40,7 +40,9 @@
     </p>
   </header>
 
-  <main class="layout">
+  <main>
+  <div id="page-1" class="page active">
+   <div class="layout layout-single">
     <section class="panel intake" aria-labelledby="intake-heading">
       <h2 id="intake-heading"><span class="eyebrow">01</span> Birth details</h2>
       <form id="birth-form">
@@ -110,7 +112,46 @@
       <p id="status" class="status" role="status"></p>
     </section>
 
-    <section class="panel results" aria-labelledby="results-heading" id="results" hidden>
+    <section class="panel tool-preview" aria-labelledby="tool-preview-heading">
+      <h2 id="tool-preview-heading"><span class="eyebrow">—</span> What's in your report</h2>
+      <div class="tool-grid">
+        <div class="tool-card">
+          <div class="tool-icon">R</div>
+          <div>
+            <p class="tool-title">Chart &amp; Timing</p>
+            <p class="tool-desc">Sidereal wheel, North Indian Lagna chart, Avakahada Chakra, and your full Vimshottari dasha timeline.</p>
+          </div>
+        </div>
+        <div class="tool-card">
+          <div class="tool-icon">C</div>
+          <div>
+            <p class="tool-title">Gemstone Shortlist</p>
+            <p class="tool-desc">Traditional rule-graph candidates, filtered through the Gemstone Conflict Agent — never a final recommendation.</p>
+          </div>
+        </div>
+        <div class="tool-card">
+          <div class="tool-icon">V</div>
+          <div>
+            <p class="tool-title">Certificate Check</p>
+            <p class="tool-desc">Validates a report number's format and links you to the issuing lab's own public verification page.</p>
+          </div>
+        </div>
+        <div class="tool-card">
+          <div class="tool-icon">A</div>
+          <div>
+            <p class="tool-title">AI Explanation</p>
+            <p class="tool-desc">Claude narrates your already-computed chart for the areas you select — screened before it's ever shown.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+   </div>
+  </div>
+
+  <div id="page-2" class="page">
+   <div class="layout">
+    <section class="panel results" aria-labelledby="results-heading" id="results">
+      <button type="button" id="back-to-form" class="back-link">← Back to birth details</button>
       <p class="blueprint-headline">Your Celestial &amp; Mineral Blueprint</p>
       <h2 id="results-heading"><span class="eyebrow">02</span> Deterministic report</h2>
 
@@ -241,6 +282,8 @@
         <p id="download-status" class="status"></p>
       </div>
     </section>
+   </div>
+  </div>
   </main>
 
   <footer class="site-footer">

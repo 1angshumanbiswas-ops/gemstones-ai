@@ -11,7 +11,24 @@ const PLANET_GLYPHS = {
 const form = document.getElementById("birth-form");
 const statusEl = document.getElementById("status");
 const resultsEl = document.getElementById("results");
+const page1El = document.getElementById("page-1");
+const page2El = document.getElementById("page-2");
+const backBtn = document.getElementById("back-to-form");
 let lastResult = null;
+
+function goToPage2() {
+  page1El.classList.remove("active");
+  page2El.classList.add("active");
+  window.scrollTo({ top: 0, behavior: "instant" in window ? "instant" : "auto" });
+}
+
+function goToPage1() {
+  page2El.classList.remove("active");
+  page1El.classList.add("active");
+  window.scrollTo({ top: 0, behavior: "instant" in window ? "instant" : "auto" });
+}
+
+backBtn.addEventListener("click", goToPage1);
 
 form.addEventListener("submit", async (evt) => {
   evt.preventDefault();
@@ -51,17 +68,16 @@ form.addEventListener("submit", async (evt) => {
 
     renderResult(data);
     statusEl.textContent = "Done.";
+    goToPage2();
   } catch (err) {
     statusEl.textContent = err.message;
     statusEl.classList.add("error");
-    resultsEl.hidden = true;
   } finally {
     submitBtn.disabled = false;
   }
 });
 
 function renderResult(data) {
-  resultsEl.hidden = false;
   lastResult = data;
 
   document.getElementById("conf-astro").textContent =
